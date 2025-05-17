@@ -1,0 +1,9 @@
+.theme-toggler.dark > .dark {
+  height: 0px;
+  overflow: hidden;
+}
+
+.theme-toggler.light > .light {
+  height: 0px;
+  overflow: hidden;
+}

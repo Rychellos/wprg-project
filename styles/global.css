@@ -1,0 +1,41 @@
+@import url(bootstrap.css);
+@import url(theme_toggler.css);
+@import url(scrollbar.css);
+
+.cs-fw {
+  display: inline-block;
+  width: 1em; /* adjust this width as needed */
+  text-align: center;
+}
+
+* {
+  transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+
+.primary-secondary-gradient {
+  background: linear-gradient(
+    to left,
+    var(--bs-secondary),
+    var(--bs-primary),
+    var(--bs-secondary)
+  );
+  background-size: 200% auto;
+  background-position: 0% center;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.primary-secondary-gradient.animated {
+  animation: gradientShift 4s linear infinite;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
