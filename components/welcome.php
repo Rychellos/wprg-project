@@ -80,7 +80,7 @@ function banner()
     EOD;
 
     global $scripts;
-    $scripts["/scripts/nextQuizTimer.js"] = 1;
+    $scripts["scripts/nextQuizTimer.js"] = 1;
 }
 
 function welcome()

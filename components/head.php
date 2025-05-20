@@ -3,15 +3,12 @@ function head($title = "", $stylesheets = [])
 {
     echo <<<EOD
         <head>
-            <script src="/scripts/theme_apply.js"></script>
+        <base href="/wprg-project/" />
+            <script src="scripts/theme_apply.js"></script>
             <title>$title</title>
-            <link
-                rel="stylesheet"
-                href="/icons/font/bootstrap-icons.min.css"
-            />
-            <link rel="stylesheet" href="/styles/global.css">
+            <link rel="stylesheet" href="styles/global.css">
             <script
-                src="/bootstrap/dist/js/bootstrap.bundle.min.js"
+                src="bootstrap/dist/js/bootstrap.bundle.min.js"
             ></script>
     EOD;
 

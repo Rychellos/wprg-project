@@ -1,1 +1,4 @@
-ErrorDocument 404 /404.php
+RewriteEngine On
+RewriteBase /wprg-project/
+
+ErrorDocument 404 /wprg-project/404.php

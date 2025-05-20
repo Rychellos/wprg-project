@@ -37,13 +37,13 @@ function navbar()
     } else {
         $accountMenuContents .= <<<EOD
             <li>
-                <a class="dropdown-item" href="/login.php">
+                <a class="dropdown-item" href="login.php">
                     <i class="bi bi-key-fill cs-fw me-1"></i>
                     Zaloguj się
                 </a>
             </li>
             <li>
-                <a class="dropdown-item" href="/register.php">
+                <a class="dropdown-item" href="register.php">
                     <i class="bi bi-person-fill cs-fw me-1"></i>
                     Zajerestruj się
                 </a>
@@ -89,7 +89,7 @@ function navbar()
         <header class="bg-primary-subtle shadow-lg">
             <nav class="navbar navbar-expand-lg">
                 <div class="container-fluid align-items-center d-flex">
-                    <a class="navbar-brand primary-secondary-gradient" href="/">Quiz Serwis</a>
+                    <a class="navbar-brand primary-secondary-gradient" href="">Quiz Serwis</a>
 
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
@@ -98,7 +98,7 @@ function navbar()
                     <div class="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul class="navbar-nav me-auto mb-2 mb-lg-0 w-100">
                             <li class="nav-item">
-                                <a class="nav-link" aria-current="page" href="/">
+                                <a class="nav-link" aria-current="page" href="">
                                     <i class="bi bi-house-fill me-1"></i>
                                     Strona Główna
                                 </a>
@@ -156,5 +156,5 @@ function navbar()
     EOD;
 }
 
-$scripts["/scripts/theme_toggle.js"] = 1;
-$scripts["/scripts/nav_theme_toggler.js"] = 1;
+$scripts["scripts/theme_toggle.js"] = 1;
+$scripts["scripts/nav_theme_toggler.js"] = 1;

@@ -12,13 +12,13 @@
       Skontaktuj się z administratorem aby rozwiązać ten problem.
     </p>
     <?php
-      if(Database::has_errored() == 2) { ?>
+    if (Database::has_errored() == 2) { ?>
       <details>
         <summary>Wyświetl szczegóły</summary>
         <div>
-          <?php Database::get_connection()->errorInfo()[2] ?>
+          <?php var_dump(Database::get_connection()->errorInfo()) ?>
         </div>
       </details>
     <?php } ?>
   </div>
-</sectio>
+  </sectio>

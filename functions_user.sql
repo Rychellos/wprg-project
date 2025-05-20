@@ -1,0 +1,2 @@
+CREATE FUNCTION UserCreate(p_userEmail TEXT, )
+    RETURN TINYTEXT

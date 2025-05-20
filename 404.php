@@ -7,7 +7,7 @@ foreach (glob(__DIR__ . "/components/*.php") as $file) {
     include_once $file;
 }
 
-?> Serwis
+?>
 
 <!DOCTYPE html>
 <html class="d-flex w-100 h-100">
@@ -19,7 +19,7 @@ foreach (glob(__DIR__ . "/components/*.php") as $file) {
     <div class="d-flex flex-column h-100 overflow-y-auto">
         <main class="container-fluid mb-3">
             <div class="container my-5 h-100">
-                <h2>UPS, zgubiłeś się co? Tutaj masz powrót na <a href="/">Stronę Główną</a>.</h2>
+                <h2>UPS, zgubiłeś się co? Tutaj masz powrót na <a href="">Stronę Główną</a>.</h2>
             </div>
         </main>
         <?php include "./templates/footer.html"; ?>

@@ -8,9 +8,16 @@ foreach (glob(__DIR__ . "/components/*.php") as $file) {
 }
 
 // LOGIN HANDLING
+$userName = "";
+if (isset($_POST["userName"])) {
+    preg_match("/^[\w]{6,255}$/", $_POST["userName"], $match);
+    $userName = sizeof($match) > 0 ? $_POST["userName"] : "";
+}
+
 $userEmail = "";
 if (isset($_POST["userEmail"])) {
-    $userEmail = $_POST["userEmail"];
+    $userEmail = preg_match("/^[\w\-\.]+@([\w-]+\.)+[\w-]{2,}$/", $_POST["userEmail"], $match);
+    $userEmail = sizeof($match) > 0 ? $_POST["userEmail"] : "";
 }
 
 $userPassword = "";
@@ -25,11 +32,23 @@ if (isset($_POST["userPasswordRepeat"])) {
 
 $connection = Database::get_connection();
 
-if ($userEmail != "" && $userPassword != "" && $userPassword == $userPasswordRepeat) {
+$actionResult = -1;
+if ($userName != "" && $userEmail != "" && $userPassword != "" && $userPassword == $userPasswordRepeat) {
+    $actionResult = Database::createUser($userName, $userEmail, $userPassword);
+}
 
-    //get database info
+if (isset($actionResult) && $actionResult == 0) {
+    echo "DEBUG: Successfully created user account";
+}
 
-    echo "debug: account created";
+$actionMessage = "";
+
+if ($actionResult > 0) {
+    if ($actionResult == 1) {
+        $actionMessage = "Użytkownik o takiej nazwie już istnieje!";
+    } else {
+        $actionMessage = "Ktoś już użył tego email'a!";
+    }
 }
 
 ?>
@@ -47,9 +66,9 @@ if ($userEmail != "" && $userPassword != "" && $userPassword == $userPasswordRep
             <?php if (Database::has_errored()) {
                 include "./errors/databse_connection_error.php";
             } else {
-                include "./templates/register.html";
+                register($userName, $userEmail, $actionResult, $actionMessage);
 
-                $scripts["/scripts/registerForm.js"] = 1;
+                $scripts["scripts/registerForm.js"] = 1;
             } ?>
         </main>
         <?php include "./templates/footer.html"; ?>
