@@ -2,6 +2,14 @@
 @import url(theme_toggler.css);
 @import url(scrollbar.css);
 
+@view-transition {
+  navigation: auto;
+}
+
+body main {
+  view-transition-name: main;
+}
+
 .cs-fw {
   display: inline-block;
   width: 1em; /* adjust this width as needed */

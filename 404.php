@@ -7,26 +7,20 @@ foreach (glob(__DIR__ . "/components/*.php") as $file) {
     include_once $file;
 }
 
-?>
+?> Serwis
 
 <!DOCTYPE html>
 <html class="d-flex w-100 h-100">
-<?php head("Quiz Serwis"); ?>
+<?php head("Nie znaleziono"); ?>
 
 <body class="bg-body d-flex h-100 w-100 flex-column overflow-hidden">
     <?php navbar(); ?>
 
     <div class="d-flex flex-column h-100 overflow-y-auto">
         <main class="container-fluid mb-3">
-
-            <?php Database::get_connection();
-
-            if (Database::has_errored()) {
-                include "errors/databse_connection_error.php";
-            } else {
-                welcome();
-            } ?>
-
+            <div class="container my-5 h-100">
+                <h2>UPS, zgubiłeś się co? Tutaj masz powrót na <a href="/">Stronę Główną</a>.</h2>
+            </div>
         </main>
         <?php include "./templates/footer.html"; ?>
     </div>

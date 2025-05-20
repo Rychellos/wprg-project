@@ -37,13 +37,13 @@ function navbar()
     } else {
         $accountMenuContents .= <<<EOD
             <li>
-                <a class="dropdown-item" href="login.php">
+                <a class="dropdown-item" href="/login.php">
                     <i class="bi bi-key-fill cs-fw me-1"></i>
                     Zaloguj się
                 </a>
             </li>
             <li>
-                <a class="dropdown-item" href="register.php">
+                <a class="dropdown-item" href="/register.php">
                     <i class="bi bi-person-fill cs-fw me-1"></i>
                     Zajerestruj się
                 </a>
