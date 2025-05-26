@@ -1,14 +1,34 @@
 <?php
 $scripts = [];
-include_once "functions/database.php";
+require_once "functions/database.php";
+require_once "functions/session.php";
+
+if (Session::isLoggedIn()) {
+    header('Location: ' . "index.php", true, 303);
+    die();
+}
 
 // Autoload components
 foreach (glob(__DIR__ . "/components/*.php") as $file) {
-    include_once $file;
+    require_once $file;
+}
+
+// Invoke to start connection
+Database::get_connection();
+
+if (Database::checkRememberMe()) {
+    if (Session::getLastPage()) {
+        header('Location: ' . Session::getLastPage(), true, 303);
+
+        Session::setLastPage(null);
+        die();
+    }
+
+    header('Location: ' . "index.php", true, 303);
+    die();
 }
 
 // LOGIN HANDLING
-
 $userEmail = "";
 if (isset($_POST["userEmail"])) {
     $userEmail = $_POST["userEmail"];
@@ -19,16 +39,20 @@ if (isset($_POST["userPassword"])) {
     $userPassword = $_POST["userPassword"];
 }
 
-$connection = Database::get_connection();
+if ($userEmail != "" && $userPassword != "") {
+    $user = Database::loginUser($userEmail, $userPassword);
 
-if ($userEmail != "" && $userEmail != "") {
+    if ($user->id != null) {
+        Session::fetchFromDatabase($user->id);
 
-    //get database info
-    $connection;
+        if (isset($_POST["rememberMe"])) {
+            Database::rememberUser($user->id);
+        }
+
+        header('Location: ' . "index.php", true, 303);
+        die();
+    }
 }
-
-$hash = password_hash($userPassword, PASSWORD_ARGON2ID);
-$verify = password_verify($userPassword, $hash);
 
 ?>
 
@@ -42,17 +66,16 @@ $verify = password_verify($userPassword, $hash);
 
     <div class="d-flex flex-column h-100 overflow-y-auto bg-body-tertiary">
         <main class="container-fluid bg-body pb-3 h-100">
-
             <?php if (Database::has_errored()) {
-                include "./errors/databse_connection_error.php";
+                require "./errors/databse_connection_error.php";
             } else {
-                include "./templates/login.html";
+                login(isset($userEmail) ? $userEmail : "", isset($user) ? $user->id ? 0 : 1 : 0, "Email lub hasło jest nieprawidłowe");
 
-                $scripts["/scripts/loginForm.js"] = 1;
+                $scripts["scripts/loginForm.js"] = 1;
             } ?>
 
         </main>
-        <?php include "./templates/footer.html"; ?>
+        <?php require "./templates/footer.html"; ?>
     </div>
 
     <?php

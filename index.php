@@ -1,10 +1,17 @@
 <?php
 $scripts = array();
-include_once("functions/database.php");
+require_once("functions/database.php");
+require_once("functions/session.php");
 
 // Autoload components
 foreach (glob(__DIR__ . "/components/*.php") as $file) {
-    include_once $file;
+    require_once $file;
+}
+
+Database::get_connection();
+if (Database::has_errored() == 0) {
+    Session::setLastPage("index.php");
+    Database::checkRememberMe();
 }
 
 ?>
@@ -19,16 +26,15 @@ foreach (glob(__DIR__ . "/components/*.php") as $file) {
     <div class="d-flex flex-column h-100 overflow-y-auto">
         <main class="container-fluid mb-3">
 
-            <?php Database::get_connection();
-
+            <?php
             if (Database::has_errored()) {
-                include "errors/databse_connection_error.php";
+                require "errors/databse_connection_error.php";
             } else {
                 welcome();
             } ?>
 
         </main>
-        <?php include "./templates/footer.html"; ?>
+        <?php require "./templates/footer.html"; ?>
     </div>
 
     <?php

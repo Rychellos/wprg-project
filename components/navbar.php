@@ -1,10 +1,12 @@
 <?php
+require_once "functions/session.php";
+
 function navbar()
 {
     $quizMenuContents = "";
     $accountMenuContents = "";
 
-    if (isset($_SESSION["isLoggedIn"]) && $_SESSION["isLoggedIn"] == true) {
+    if (Session::isLoggedIn()) {
         $quizMenuContents .= <<<EOD
             <li>
                 <a class="dropdown-item" href="#">
@@ -16,9 +18,9 @@ function navbar()
 
         $accountMenuContents .= <<<EOD
             <li>
-                <a class="dropdown-item" href="#">
+                <a class="dropdown-item" href="aboutMe.php">
                     <i class="bi bi-clipboard-fill cs-fw me-1"></i>
-                    Edytuj profil
+                    O mnie
                 </a>
             </li>
             <li>
@@ -28,7 +30,7 @@ function navbar()
                 </a>
             </li>
             <li>
-                <a class="dropdown-item" href="#">
+                <a class="dropdown-item" href="logout.php">
                     <i class="bi bi-lock-fill cs-fw me-1"></i>
                     Wyloguj się
                 </a>
@@ -52,8 +54,8 @@ function navbar()
     }
 
     if (
-        (isset($_SESSION["isModerator"]) && $_SESSION["isModerator"] == true) ||
-        (isset($_SESSION["isAdmin"]) && $_SESSION["isAdmin"] == true)
+        Session::isModerator() ||
+        Session::isAdmin()
     ) {
         $quizMenuContents .= <<<EOD
             <li>
@@ -68,7 +70,7 @@ function navbar()
         EOD;
     }
 
-    if (isset($_SESSION["isAdmin"]) && $_SESSION["isAdmin"] == true) {
+    if (Session::isAdmin()) {
         $quizMenuContents .= <<<EOD
             <li>
                 <a class="dropdown-item" href="#">

@@ -1,6 +1,9 @@
 <?php
 $scripts = array();
 require_once("functions/database.php");
+require_once("functions/session.php");
+
+Session::setLastPage("aboutMe.php");
 
 // Autoload components
 foreach (glob(__DIR__ . "/components/*.php") as $file) {
@@ -11,16 +14,22 @@ foreach (glob(__DIR__ . "/components/*.php") as $file) {
 
 <!DOCTYPE html>
 <html class="d-flex w-100 h-100">
-<?php head("Nie znaleziono"); ?>
+<?php head("O mnie"); ?>
 
 <body class="bg-body d-flex h-100 w-100 flex-column overflow-hidden">
     <?php navbar(); ?>
 
     <div class="d-flex flex-column h-100 overflow-y-auto">
         <main class="container-fluid mb-3">
-            <div class="container my-5 h-100">
-                <h2>UPS, zgubiłeś się co? Tutaj masz powrót na <a href="">Stronę Główną</a>.</h2>
-            </div>
+
+            <?php Database::get_connection();
+
+            if (Database::has_errored()) {
+                require "errors/databse_connection_error.php";
+            } else {
+                aboutMe();
+            } ?>
+
         </main>
         <?php require "./templates/footer.html"; ?>
     </div>

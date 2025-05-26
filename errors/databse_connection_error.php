@@ -1,4 +1,4 @@
-<?php include_once("functions/database.php") ?>
+<?php require_once("functions/database.php") ?>
 
 <section class="d-flex h-100 w-100">
   <div class="alert alert-danger m-auto" role="alert">

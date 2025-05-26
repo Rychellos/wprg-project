@@ -1,10 +1,16 @@
 <?php
 $scripts = [];
-include_once "functions/database.php";
+require_once "functions/database.php";
+require_once "functions/session.php";
+
+if (Session::isLoggedIn()) {
+    header('Location: ' . "index.php", true, 303);
+    die();
+}
 
 // Autoload components
 foreach (glob(__DIR__ . "/components/*.php") as $file) {
-    include_once $file;
+    require_once $file;
 }
 
 // LOGIN HANDLING
@@ -38,7 +44,17 @@ if ($userName != "" && $userEmail != "" && $userPassword != "" && $userPassword 
 }
 
 if (isset($actionResult) && $actionResult == 0) {
-    echo "DEBUG: Successfully created user account";
+    $user = Database::loginUser($userEmail, $userPassword);
+
+    Session::setIsLoggedIn(true);
+    Session::setIsModerator($user->type == "moderator");
+    Session::setIsAdmin($user->type == "administrator");
+    Session::setUserID($user->id);
+    Session::setUserEmail($user->email);
+    Session::setUserName($user->name);
+
+    header('Location: ' . "index.php", true, 303);
+    die();
 }
 
 $actionMessage = "";
@@ -64,14 +80,14 @@ if ($actionResult > 0) {
     <div class="d-flex flex-column h-100 overflow-y-auto bg-body-tertiary">
         <main class="container-fluid bg-body pb-3 h-100">
             <?php if (Database::has_errored()) {
-                include "./errors/databse_connection_error.php";
+                require "./errors/databse_connection_error.php";
             } else {
                 register($userName, $userEmail, $actionResult, $actionMessage);
 
                 $scripts["scripts/registerForm.js"] = 1;
             } ?>
         </main>
-        <?php include "./templates/footer.html"; ?>
+        <?php require "./templates/footer.html"; ?>
     </div>
 
     <?php

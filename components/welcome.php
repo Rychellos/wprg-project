@@ -1,4 +1,5 @@
 <?php
+require_once "functions/session.php";
 
 function card($titile, $description, $link, $imageSource)
 {
@@ -52,8 +53,8 @@ function banner()
 {
     $user = "";
 
-    if (isset($_SESSION["userName"])) {
-        $user = ' ' . $_SESSION["userName"];
+    if (Session::getUserName() != null) {
+        $user = ' ' . Session::getUserName();
     }
 
     echo <<<EOD
