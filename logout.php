@@ -6,5 +6,9 @@ Database::get_connection();
 
 Database::forgetMe(Session::getUserID());
 
+if (Session::getUserID()) {
+    Session::destroy();
+}
+
 header('Location: ' . "index.php", true, 303);
 die();

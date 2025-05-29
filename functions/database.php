@@ -1,4 +1,5 @@
 <?php
+require_once "functions/avatar.php";
 
 class Database
 {
@@ -168,22 +169,19 @@ class Database
         if (!Session::getUserID() && isset($_COOKIE['rememberMe'])) {
             [$selector, $validator] = explode(':', $_COOKIE['rememberMe']);
 
-            $stmt = self::$connection->prepare("SELECT * FROM UserToken WHERE selector = ? AND expires >= NOW()");
+            $stmt = self::$connection->prepare("SELECT * FROM UserToken WHERE selector = ? AND expires >= NOW();");
             $stmt->execute([$selector]);
             $token = $stmt->fetchObject();
 
             if ($token && hash_equals($token->hashedValidator, hash('sha256', $validator))) {
-                // Valid token, log the user in
-                // Session::setUserID($token['userId']);
                 Session::fetchFromDatabase($token->userId);
 
-                // Optionally refresh token (rotate)
-                self::rememberUser($token->userId); // Rotate token
+                self::rememberUser($token->userId);
 
                 return true;
             } else {
                 // Invalid or expired
-                setcookie('rememberMe', '', time() - 3600, '/');
+                setcookie('rememberMe', '', time() - 3600, '/', '', false, true);
                 return false;
             }
         }
@@ -193,8 +191,22 @@ class Database
 
     public static function forgetMe($userId)
     {
-        $stmt = self::$connection->prepare("UPDATE UserToken SET expires=NOW() WHERE userId = ? AND expires >= NOW()");
+        if (isset($_COOKIE['rememberMe'])) {
+            [$selector, $validator] = explode(':', $_COOKIE['rememberMe']);
+            setcookie('rememberMe', '', time() - 3600, '/', '', false, true);
+
+            $stmt = self::$connection->prepare("UPDATE UserToken SET expires=NOW() WHERE userId = ? AND selector = ?;");
+            $stmt->execute([$userId, $selector]);
+        }
+    }
+
+    public static function getProfilePictureUrl($userId): string
+    {
+        $stmt = self::$connection->prepare("SELECT url FROM UserAvatar WHERE userId = ?;");
         $stmt->execute([$userId]);
-        Session::destroy();
+
+        $url = $stmt->fetchColumn();
+
+        return $url ? Avatar::$directory . $url : "https://placehold.co/256x256.png";
     }
 }

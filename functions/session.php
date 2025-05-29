@@ -24,10 +24,6 @@ class Session
         Session::setUserID($user->id);
         Session::setUserEmail($user->email);
         Session::setUserName($user->name);
-
-        if ($user->avatarId != null) {
-            Session::setUserAvatarId($user->avatarId);
-        }
     }
 
     public static function isLoggedIn(): bool
@@ -78,16 +74,6 @@ class Session
     public static function setUserEmail($value)
     {
         $_SESSION["user_email"] = $value;
-    }
-
-    public static function getUserAvatarId()
-    {
-        return isset($_SESSION["user_avatarId"]) ? $_SESSION["user_avatarId"] : null;
-    }
-
-    public static function setUserAvatarId($value)
-    {
-        $_SESSION["user_avatarId"] = $value;
     }
 
     public static function getUserName()

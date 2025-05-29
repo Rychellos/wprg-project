@@ -1,13 +1,21 @@
 <?php
 $scripts = array();
-require_once("functions/database.php");
-require_once("functions/session.php");
+require_once "functions/database.php";
+require_once "functions/session.php";
 
 Session::setLastPage("aboutMe.php");
 
 // Autoload components
 foreach (glob(__DIR__ . "/components/*.php") as $file) {
     require_once $file;
+}
+
+Database::get_connection();
+Database::checkRememberMe();
+
+if (!Session::isLoggedIn()) {
+    header('Location: ' . "login.php", true, 303);
+    die();
 }
 
 ?>
@@ -28,7 +36,11 @@ foreach (glob(__DIR__ . "/components/*.php") as $file) {
                 require "errors/databse_connection_error.php";
             } else {
                 aboutMe();
-            } ?>
+            }
+
+            $scripts["scripts/aboutMe.js"] = 1;
+
+            ?>
 
         </main>
         <?php require "./templates/footer.html"; ?>
