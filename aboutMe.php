@@ -38,6 +38,7 @@ if (!Session::isLoggedIn()) {
                 aboutMe();
             }
 
+            $scripts["scripts/toasts.js"] = 1;
             $scripts["scripts/aboutMe.js"] = 1;
 
             ?>

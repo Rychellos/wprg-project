@@ -27,25 +27,15 @@
         body: data,
       }).then(async (response) => {
         const message = await response.text();
-        const toastElement = document.createElement("div");
-        toastElement.classList.add("toast", "mt-3", "overflow-hidden");
-        toastElement.setAttribute("role", "alert");
-        toastElement.setAttribute("aria-live", "assertive");
-        toastElement.setAttribute("aria-atomic", "true");
+        showToast(message, "success");
 
-        toastElement.innerHTML = `<div class="toast-header border-0">
-            <strong class="me-auto">${message}</strong>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>`;
-        profilePitureForm.append(toastElement);
+        const oldSrc = profilePicture.src;
 
-        const toast = new bootstrap.Toast(toastElement);
-        toast.show();
+        profilePicture.src = "";
 
-        console.log(toast);
+        fetch(oldSrc, { method: "POST", credentials: "include" });
 
-        profilePicture.src =
-          profilePicture.src.split("?")[0] + `?t=${Date.now()}`;
+        profilePicture.src = oldSrc;
       });
     },
     false
