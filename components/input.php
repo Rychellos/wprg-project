@@ -23,11 +23,18 @@ function baseInput(
     $required = false,
     $autocomplete = false,
 ) {
-    echo <<<EOD
-        <div class="input-group has-validation shadow">
+    $icon = "";
+    if ($iconClassName !== null) {
+        $icon = <<<EOD
             <span class="input-group-text rounded-end-0">
                 <i class="bi $iconClassName fs-4 cs-fw"></i>
             </span>
+        EOD;
+    }
+
+    echo <<<EOD
+        <div class="input-group has-validation shadow">
+            $icon
             <div class="form-floating">
                 <input
                     required="$required"

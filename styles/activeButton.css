@@ -1,0 +1,10 @@
+input[type="radio"]:checked + label.btn {
+  --bs-bg-opacity: 1;
+  --bs-text-opacity: 1;
+  background-color: rgba(
+    var(--bs-primary-rgb),
+    var(--bs-bg-opacity)
+  ) !important;
+  color: rgba(var(--bs-light-rgb), var(--bs-text-opacity)) !important;
+  border-color: var(--bs-btn-hover-border-color);
+}

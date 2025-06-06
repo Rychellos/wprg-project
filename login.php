@@ -71,7 +71,7 @@ if ($userEmail != "" && $userPassword != "") {
             } else {
                 login(isset($userEmail) ? $userEmail : "", isset($user) ? $user->id ? 0 : 1 : 0, "Email lub hasło jest nieprawidłowe");
 
-                $scripts["scripts/loginForm.js"] = 1;
+                $scripts["scripts/validateBootstrapForms.js"] = 1;
             } ?>
 
         </main>

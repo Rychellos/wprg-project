@@ -62,7 +62,7 @@ function navbar()
                 <hr class="dropdown-divider">
             </li>
             <li>
-                <a class="dropdown-item" href="#">
+                <a class="dropdown-item" href="quizCreate.php">
                     <i class="bi bi-plus-circle-fill cs-fw me-1"></i>
                     Utwórz
                 </a>
@@ -79,7 +79,7 @@ function navbar()
                 </a>
             </li>
             <li>
-                <a class="dropdown-item" href="#">
+                <a class="dropdown-item" href="category.php">
                     <i class="bi bi-stickies-fill cs-fw me-1"></i>
                     Kategorie
                 </a>

@@ -1,6 +1,8 @@
 <?php
 require_once "functions/avatar.php";
 
+const CATEGORIES_PER_PAGE = 15;
+
 class Database
 {
     private static $connection;
@@ -39,22 +41,26 @@ class Database
      * @param string $username
      * @param string $email
      * @param string $password
-     * @return int 0 on success, 1 if username is already taken or 2 if email is used by other account
+     * @return int 0 - ok; 1 - username is already taken; 2 - email is used by other account
      */
     public static function createUser($username, $email, $password)
     {
         $connection = self::$connection;
 
-        $statement = $connection->prepare("SELECT CreateUser(:username, :email, :password)");
-
+        $statement = $connection->prepare("CALL CreateUser(:username, :email, :passwordHash, @result);");
         $statement->execute([
             "username" => $username,
             "email" => $email,
-            "password" => password_hash($password, PASSWORD_ARGON2ID)
+            "passwordHash" => password_hash($password, PASSWORD_ARGON2ID)
         ]);
+        $statement->closeCursor();
 
-        return $statement->fetchColumn();
+        $resultStatement = $connection->query("SELECT @result;");
+        $result = $resultStatement->fetchColumn();
+
+        return (int) $result;
     }
+
 
     /**
      * Checks if user of given email and password exists
@@ -65,40 +71,61 @@ class Database
      *  name: string,
      *  email: number,
      *  avatarId: number,
-     *  type: string
-     * }
+     *  type: string,
+     *  resultCode: number
+     * } //Result codes: 0-ok; 1-invalid
      */
     public static function loginUser($email, $password)
     {
+        // Step 1: Fetch user by email
+        $stmt = self::$connection->prepare("CALL LoginUser(:email)");
+        $stmt->execute(['email' => $email]);
+
+        $user = $stmt->fetchObject();
+
+        $stmt->closeCursor(); // Important: free result for next query
+
         $returnValue = (object) [
+            "resultCode" => null,
             "id" => null,
             "name" => null,
-            "email" => null,
+            "email" => $email,
             "avatarId" => null,
             "type" => null
         ];
 
-        $connection = self::$connection;
-
-        $statement = $connection->prepare("SELECT * FROM User WHERE email = :email;");
-
-        $statement->execute(["email" => $email]);
-
-        $dbReturnValue = $statement->fetchObject();
-
-        if (
-            $dbReturnValue &&
-            password_verify($password, $dbReturnValue->passwordHash)
-        ) {
-            $returnValue->id = $dbReturnValue->id;
-            $returnValue->name = $dbReturnValue->name;
-            $returnValue->email = $dbReturnValue->email;
-            $returnValue->avatarId = $dbReturnValue->avatarId;
-            $returnValue->type = $dbReturnValue->type;
+        if (!$user) {
+            // No such email
+            $logStmt = self::$connection->prepare("CALL LogLoginAttempt(NULL, :detail)");
+            $logStmt->execute(['detail' => "Login failed: unknown email $email"]);
+            $returnValue->resultCode = 1;
+            return $returnValue;
         }
+
+        // Step 2: Verify password
+        if (!password_verify($password, $user->passwordHash)) {
+            $logStmt = self::$connection->prepare("CALL LogLoginAttempt(:userId, :detail)");
+            $logStmt->execute([
+                'userId' => $user->id,
+                'detail' => 'Login failed: invalid password'
+            ]);
+            $returnValue->resultCode = 2;
+            return $returnValue;
+        }
+
+        // Step 3: Successful login
+        $logStmt = self::$connection->prepare("CALL LogLoginAttempt(:userId, NULL)");
+        $logStmt->execute(['userId' => $user->id]);
+
+        $returnValue->resultCode = 0;
+        $returnValue->id = $user->id;
+        $returnValue->name = $user->name;
+        $returnValue->avatarId = $user->avatarId;
+        $returnValue->type = $user->type;
 
         return $returnValue;
     }
+
 
     /**
      * Checks if user of given email and password exists and if do, returns their details
@@ -149,38 +176,53 @@ class Database
      */
     public static function rememberUser($userId)
     {
-        // Generate selector and validator
         $selector = bin2hex(random_bytes(6));
         $validator = bin2hex(random_bytes(32));
         $hashedValidator = hash('sha256', $validator);
         $expires = date('Y-m-d H:i:s', time() + 172800); // 2 days
 
-        // Store in DB
-        $stmt = self::$connection->prepare("INSERT INTO UserToken (userId, selector, hashedValidator, expires) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$userId, $selector, $hashedValidator, $expires]);
+        $statement = self::$connection->prepare("CALL RememberUser(:userId, :selector, :hashedValidator, :expires);");
+        $statement->execute([
+            "userId" => $userId,
+            "selector" => $selector,
+            "hashedValidator" => $hashedValidator,
+            "expires" => $expires
+        ]);
 
-        // Set cookie
         $cookieValue = $selector . ':' . $validator;
         setcookie('rememberMe', $cookieValue, time() + 172800, '/', '', false, true);
     }
+
 
     public static function checkRememberMe()
     {
         if (!Session::getUserID() && isset($_COOKIE['rememberMe'])) {
             [$selector, $validator] = explode(':', $_COOKIE['rememberMe']);
 
-            $stmt = self::$connection->prepare("SELECT * FROM UserToken WHERE selector = ? AND expires >= NOW();");
-            $stmt->execute([$selector]);
+            $stmt = self::$connection->prepare("CALL CheckRememberMe(:selector)");
+            $stmt->execute(['selector' => $selector]);
             $token = $stmt->fetchObject();
+            $stmt->closeCursor();
 
-            if ($token && hash_equals($token->hashedValidator, hash('sha256', $validator))) {
+            if (
+                $token &&
+                is_null($token->expired) &&
+                hash_equals($token->hashedValidator, hash('sha256', $validator))
+            ) {
                 Session::fetchFromDatabase($token->userId);
 
+                // Renew token
                 self::rememberUser($token->userId);
 
                 return true;
             } else {
-                // Invalid or expired
+                // Mark as expired
+                $expireStmt = self::$connection->prepare(
+                    "UPDATE UserToken SET expired = NOW() WHERE selector = :selector"
+                );
+                $expireStmt->execute(['selector' => $selector]);
+
+                // Expire cookie
                 setcookie('rememberMe', '', time() - 3600, '/', '', false, true);
                 return false;
             }
@@ -189,24 +231,141 @@ class Database
         return false;
     }
 
+
     public static function forgetMe($userId)
     {
         if (isset($_COOKIE['rememberMe'])) {
             [$selector, $validator] = explode(':', $_COOKIE['rememberMe']);
             setcookie('rememberMe', '', time() - 3600, '/', '', false, true);
 
-            $stmt = self::$connection->prepare("UPDATE UserToken SET expires=NOW() WHERE userId = ? AND selector = ?;");
-            $stmt->execute([$userId, $selector]);
+            $statement = self::$connection->prepare("CALL ForgetMe(:userId, :selector);");
+            $statement->execute([
+                "userId" => $userId,
+                "selector" => $selector
+            ]);
         }
     }
 
+
     public static function getProfilePictureUrl($userId): string
     {
-        $stmt = self::$connection->prepare("SELECT url FROM UserAvatar WHERE userId = ?;");
-        $stmt->execute([$userId]);
+        $statement = self::$connection->prepare("SELECT url FROM UserAvatar WHERE userId = ?;");
+        $statement->execute([$userId]);
 
-        $url = $stmt->fetchColumn();
+        $url = $statement->fetchColumn();
 
         return $url ? Avatar::$directory . $url : "https://placehold.co/256x256.png";
+    }
+
+    /**
+     * @param number $page
+     * @return object{
+     *  id: number,
+     *  name: string,
+     *  description: string,
+     * }[]
+     */
+    public static function fetchCategories($page)
+    {
+        if (!is_numeric($page)) {
+            return [];
+        }
+
+        $page *= CATEGORIES_PER_PAGE;
+
+        $statement = self::$connection->prepare("SELECT * FROM Category LIMIT " . CATEGORIES_PER_PAGE . " OFFSET $page;");
+        $statement->execute();
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * @return number | false
+     */
+    public static function getCategoriesCount()
+    {
+        $statement = self::$connection->prepare("SELECT count(*) FROM Category;");
+        $statement->execute();
+
+        return $statement->fetchColumn();
+    }
+
+    /**
+     * @param number $id
+     * @return object{
+     *  id: number,
+     *  name: string,
+     *  description: string,
+     * }|false
+     */
+    public static function getCategory($id)
+    {
+        $statement = self::$connection->prepare("SELECT * FROM Category WHERE id = :id;");
+        $statement->execute(["id" => $id]);
+
+        return $statement->fetchObject();
+    }
+
+    /**
+     * @param number $id
+     * @param string $name
+     * @param string $description
+     * @return bool
+     */
+    public static function setCategory($id, $name, $description)
+    {
+        $statement = self::$connection->prepare("UPDATE Category SET name=:name, description=:description WHERE id = :id;");
+        return $statement->execute([
+            "id" => $id,
+            "name" => $name,
+            "description" => $description
+        ]);
+    }
+
+    /**
+     * @param string $name
+     * @param string $description
+     * @return int 0 on success, 1 if category of this name exisits
+     */
+    public static function createCategory($name, $description)
+    {
+        $statement = self::$connection->prepare("Select CreateCategory(:name, :description);");
+        $statement->execute([
+            "name" => $name,
+            "description" => $description
+        ]);
+
+        return $statement->fetchColumn();
+    }
+
+    /**
+     * @param int $id
+     */
+    public static function deleteCategory($id)
+    {
+        $statement = self::$connection->prepare("Select DeleteCategory(:id);");
+        $statement->execute([
+            "id" => $id
+        ]);
+
+        return $statement->fetchColumn();
+
+    }
+
+    /**
+     * @param number $id
+     * @return false|object{
+     *   quizId: number,
+     *   name: string
+     * }[]
+     */
+    public static function getQuizzesWithCategory($id)
+    {
+        $statement = self::$connection->prepare("SELECT quizId, Quiz.name AS name FROM Quiz JOIN QuizCategory ON Quiz.id = QuizCategory.quizId WHERE QuizCategory.categoryId = :id;");
+        $statement->execute([
+            "id" => $id
+        ]);
+
+        return $statement->fetchAll();
     }
 }
