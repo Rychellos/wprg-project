@@ -1,6 +1,6 @@
 <?php
 $scripts = array();
-require_once("functions/database.php");
+require_once("functions/user.php");
 require_once("functions/session.php");
 
 // Autoload components
@@ -11,7 +11,7 @@ foreach (glob(__DIR__ . "/components/*.php") as $file) {
 Database::get_connection();
 if (Database::has_errored() == 0) {
     Session::setLastPage("index.php");
-    Database::checkRememberMe();
+    User::checkRememberMe();
 }
 
 ?>

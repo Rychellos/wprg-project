@@ -36,11 +36,11 @@ function popular()
                 <div class="row justify-content-center">
     EOD;
 
-    card("Test 1", "Lorem Ipsum Solor Dir Amet", "quiz/test_1", "https://placehold.co/600x400");
-    card("Test 2", "Lorem Ipsum Solor Dir Amet", "quiz/test_2", "https://placehold.co/734x600");
-    card("Test 3", "Lorem Ipsum Solor Dir Amet", "quiz/test_3", "https://placehold.co/1920x1080");
-    card("Test 4", "Lorem Ipsum Solor Dir Amet", "quiz/test_4", "https://placehold.co/1080x1920");
-    card("Test 5", "Lorem Ipsum Solor Dir Amet", "quiz/test_5", null);
+    $mostPopular = $conn->query("SELECT qa.quizId, Quiz.name, Quiz.description, COUNT(qa.id) AS attempts FROM QuizAttempt qa JOIN Quiz ON qa.quizId = Quiz.id GROUP BY qa.quizId ORDER BY attempts DESC LIMIT 5;")->fetchAll(PDO::FETCH_OBJ);
+
+    for ($i = 0; $i < count($mostPopular); $i++) {
+        card($mostPopular[$i]->name, $mostPopular[$i]->description, "quiz.php?id=" . $mostPopular[$i]->quizId, null);;
+    }
 
     echo <<<EOD
                 </div>
@@ -57,6 +57,13 @@ function banner()
         $user = ' ' . Session::getUserName();
     }
 
+    $dailyQuiz = Database::get_connection()->query("SELECT q.* FROM Quiz q JOIN DailyQuiz dq ON dq.quizId = q.id WHERE dq.selectedDate = CURDATE();")->fetch(PDO::FETCH_OBJ);
+
+    if(!$dailyQuiz) {
+        Database::get_connection()->query("INSERT INTO DailyQuiz (quizId, selectedDate) VALUES ((SELECT id FROM Quiz ORDER BY RAND() LIMIT 1), CURDATE());");
+        $dailyQuiz = Database::get_connection()->query("SELECT q.* FROM Quiz q JOIN DailyQuiz dq ON dq.quizId = q.id WHERE dq.selectedDate = CURDATE();")->fetch(PDO::FETCH_OBJ);
+    }
+
     echo <<<EOD
         <div class="container mt-5 d-flex flex-column gap-4">
             <div class="text-center">
@@ -67,7 +74,9 @@ function banner()
                 <div class="row justify-content-between">
                     <div class="col-12 col-lg-6 d-flex gap-3 flex-column">
                         <h3 class="mb-0">Quiz dnia:</h3>
-                        <p class="fs-3 mb-0">{PODAJ QUIZ DNIA}</p>
+                        <p class="fs-3 mb-0">
+                            <a href="quiz.php?id={$dailyQuiz->id}">{$dailyQuiz->name}</a>
+                        </p>
                     </div>
                     <div class="col-12 col-lg-6 mt-3 mt-lg-0">
                         <div class="d-flex gap-3 align-items-center pe-2">

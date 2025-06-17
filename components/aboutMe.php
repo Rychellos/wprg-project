@@ -1,4 +1,7 @@
 <?php
+require_once "functions/database.php";
+require_once "functions/user.php";
+
 function summary()
 {
     $connection = Database::get_connection();
@@ -20,7 +23,7 @@ function summary()
         $userType = "administrator";
     }
 
-    $profileAvatar = Database::getProfilePictureUrl(Session::getUserID());
+    $profileAvatar = User::getProfilePictureUrl(Session::getUserID());
 
     echo <<<EOD
         <div class="p-3 rounded bg-secondary text-dark shadow">

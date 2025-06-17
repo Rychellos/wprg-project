@@ -3,7 +3,7 @@
 /**
  * @type {HTMLButtonElement}
  */
-const addCategoryButton = document.getElementById("addCategoryButton");
+const addCategoryButton = document.getElementById("categoryAddButton");
 const addCategoryModal = new bootstrap.Modal(document.querySelector(".modal"));
 
 addCategoryButton.addEventListener(
@@ -19,25 +19,26 @@ addCategoryButton.addEventListener(
   false
 );
 
-/**
- * @type {NodeListOf<HTMLInputElement>}
- */
-const categorySelect = document.getElementsByName("categoryId");
+function quizString(num) {
+  let n = abs(num);
 
-if (!location.href.includes("id=")) {
-  history.pushState(
-    {},
-    null,
-    location.href +
-      (location.href.includes("?") ? "&" : "?") +
-      `id=${categorySelect.item(1).value}`
-  );
+  // Sprawdź ostatnie dwie cyfry
+  let lastTwo = n % 100;
+  let lastOne = n % 10;
+
+  if (n == 1) {
+    return `${num} quiz`;
+  } else if (lastTwo >= 12 && lastTwo <= 14) {
+    return `${num} quizów`;
+  } else if (lastOne >= 2 && lastOne <= 4) {
+    return `${num} quizy`;
+  } else {
+    return `${num} quizów`;
+  }
 }
 
-document.getElementById("categoryId").value = categorySelect.item(1).value;
-
 let locked = false;
-categorySelect.forEach((node) =>
+ID_SETTER_FORM.idSelector.forEach((node) =>
   node.addEventListener(
     "change",
     /**
@@ -47,25 +48,6 @@ categorySelect.forEach((node) =>
       if (locked) return;
 
       locked = true;
-
-      document.querySelector('select[name="categoryId"]').value =
-        event.target.value;
-
-      document.forms["categorySelect"].categoryId.value = event.target.value;
-
-      if (!location.href.includes("id=")) {
-        history.pushState(
-          {},
-          null,
-          location.href + `?id=${event.target.value}`
-        );
-      }
-
-      history.pushState(
-        {},
-        null,
-        location.href.replace(/id=\d+/, `id=${event.target.value}`)
-      );
 
       try {
         const req = await fetch(
@@ -98,6 +80,10 @@ categorySelect.forEach((node) =>
           element.classList.add("badge", "rounded-pill", "p-2", "text-bg-info");
           quizzesWithCategory.appendChild(element);
         }
+
+        document.getElementById("quizCount").innerText = quizString(
+          data.quizzesWithCategory.length
+        );
       } catch (error) {
         console.error(error);
       }

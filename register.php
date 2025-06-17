@@ -1,6 +1,6 @@
 <?php
 $scripts = [];
-require_once "functions/database.php";
+require_once "functions/user.php";
 require_once "functions/session.php";
 
 if (Session::isLoggedIn()) {
@@ -40,11 +40,11 @@ $connection = Database::get_connection();
 
 $actionResult = -1;
 if ($userName != "" && $userEmail != "" && $userPassword != "" && $userPassword == $userPasswordRepeat) {
-    $actionResult = Database::createUser($userName, $userEmail, $userPassword);
+    $actionResult = User::create($userName, $userEmail, $userPassword);
 }
 
 if (isset($actionResult) && $actionResult == 0) {
-    $user = Database::loginUser($userEmail, $userPassword);
+    $user = User::login($userEmail, $userPassword);
 
     Session::setIsLoggedIn(true);
     Session::setIsModerator($user->type == "moderator");

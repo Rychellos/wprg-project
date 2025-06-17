@@ -1,4 +1,39 @@
 $primary: #6610f2;
 $secondary: #fd7e14;
 
+@import "../bootstrap/scss/functions";
+@import "../bootstrap/scss/variables";
+@import "../bootstrap/scss/variables-dark";
+@import "../bootstrap/scss/maps";
+@import "../bootstrap/scss/mixins";
+@import "../bootstrap/scss/utilities";
+
+$utilities: map-merge(
+  $utilities,
+  (
+    "max-view-height": (
+      property: max-height,
+      class: "max-vh",
+      responsive: true,
+      values: (
+        25: 25vh,
+        50: 50vh,
+        75: 75vh,
+        100: 100vh,
+      ),
+    ),
+    "max-view-width": (
+      property: max-width,
+      class: "max-vw",
+      responsive: true,
+      values: (
+        25: 25vh,
+        50: 50vh,
+        75: 75vh,
+        100: 100vh,
+      ),
+    ),
+  )
+);
+
 @import "../bootstrap/scss/bootstrap.scss";

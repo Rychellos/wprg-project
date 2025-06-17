@@ -1,6 +1,6 @@
 <?php
 $scripts = array();
-require_once "functions/database.php";
+require_once "functions/user.php";
 require_once "functions/session.php";
 
 Session::setLastPage("aboutMe.php");
@@ -11,7 +11,7 @@ foreach (glob(__DIR__ . "/components/*.php") as $file) {
 }
 
 Database::get_connection();
-Database::checkRememberMe();
+User::checkRememberMe();
 
 if (!Session::isLoggedIn()) {
     header('Location: ' . "login.php", true, 303);

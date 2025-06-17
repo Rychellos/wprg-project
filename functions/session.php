@@ -16,7 +16,9 @@ class Session
      */
     public static function fetchFromDatabase($userId)
     {
-        $user = Database::getUserInfo($userId);
+        $user = User::getDetail($userId);
+
+        var_dump($user);
 
         Session::setIsLoggedIn(true);
         Session::setIsModerator($user->type == "moderator");
@@ -28,7 +30,7 @@ class Session
 
     public static function isLoggedIn(): bool
     {
-        return isset($_SESSION["isLoggedIn"]) ?? $_SESSION["isLoggedIn"];
+        return $_SESSION["isLoggedIn"] ?? false;
     }
 
     public static function setIsLoggedIn($value)
@@ -38,7 +40,7 @@ class Session
 
     public static function isModerator()
     {
-        return isset($_SESSION["isModerator"]) ?? $_SESSION["isModerator"];
+        return $_SESSION["isModerator"] ?? false;
     }
 
     public static function setIsModerator($value)
@@ -48,7 +50,7 @@ class Session
 
     public static function isAdmin()
     {
-        return isset($_SESSION["isAdmin"]) ?? $_SESSION["isAdmin"];
+        return isset($_SESSION["isAdmin"]) ? $_SESSION["isAdmin"] : false;
     }
 
     public static function setIsAdmin($value)

@@ -1,6 +1,8 @@
 <?php
 $scripts = array();
-require_once "functions/database.php";
+require_once "functions/user.php";
+require_once "functions/category.php";
+require_once "functions/quiz.php";
 require_once "functions/session.php";
 
 Session::setLastPage("category.php");
@@ -11,7 +13,7 @@ foreach (glob(__DIR__ . "/components/*.php") as $file) {
 }
 
 Database::get_connection();
-Database::checkRememberMe();
+User::checkRememberMe();
 
 if (!Session::isLoggedIn()) {
     header('Location: login.php', true, 303);
@@ -26,31 +28,31 @@ if (!Session::isModerator() && !Session::isAdmin()) {
 
 // Category create
 if (isset($_POST["api"], $_POST["name"]) && $_POST["api"] == "create") {
-    $createCategoryResult = Database::createCategory($_POST["name"], $_POST["newDescription"] ?? "");
+    $createCategoryResult = Category::create($_POST["name"], $_POST["newDescription"] ?? "");
 }
 
 if (isset($_GET["id"])) {
-    $quizId = (int) $_GET["id"];
+    $categoryId = (int) $_GET["id"];
 }
 
 // Category edit
-if (isset($_POST["api"], $_POST["edit"], $quizId) && $_POST["api"] == "detail" && is_numeric($quizId)) {
+if (isset($_POST["api"], $_POST["edit"], $categoryId) && $_POST["api"] == "detail" && is_numeric($categoryId)) {
     $categoryName = $_POST["categoryName"];
     $categoryDescription = $_POST["categoryDescription"];
 
     if (isset($_POST["categoryName"], $_POST["categoryDescription"])) {
-        $categoryUpdated = Database::setCategory($quizId, $_POST["categoryName"], $_POST["categoryDescription"]);
+        $categoryUpdated = Category::set($categoryId, $_POST["categoryName"], $_POST["categoryDescription"]);
     }
 }
 
 // Category delete
-if (isset($_POST["api"], $_POST["delete"], $quizId) && $_GET["api"] == "detail" && is_numeric($quizId)) {
-    $categoryDeleted = Database::deleteCategory($quizId);
+if (isset($_POST["api"], $_POST["delete"], $categoryId) && $_GET["api"] == "detail" && is_numeric($categoryId)) {
+    $categoryDeleted = Category::delete($categoryId);
 }
 
 // Category read details
-if (isset($_GET["api"], $quizId) && $_GET["api"] == "detail" && is_numeric($quizId)) {
-    $detailData = Database::getCategory($quizId);
+if (isset($_GET["api"], $categoryId) && $_GET["api"] == "detail" && is_numeric($categoryId)) {
+    $detailData = Category::get($categoryId);
 
     if (!$detailData) {
         die(json_encode("false"));
@@ -60,30 +62,11 @@ if (isset($_GET["api"], $quizId) && $_GET["api"] == "detail" && is_numeric($quiz
         "id" => $detailData->id,
         "name" => $detailData->name,
         "description" => $detailData->description,
-        "quizzesWithCategory" => Database::getQuizzesWithCategory($quizId)
+        "quizzesWithCategory" => Quiz::getWithCategory($categoryId)
     ];
 
     die(json_encode($detailData));
 }
-
-// Paging stuff
-$page = isset($_GET["page"]) && $_GET["page"] > 1 ? $_GET["page"] : 1;
-
-if (isset($quizId) && is_numeric($quizId)) {
-    if ($page != floor($quizId / CATEGORIES_PER_PAGE) + 1) {
-        $page = floor($quizId / CATEGORIES_PER_PAGE) + 1;
-        header("Location: category.php?page=$page&id=" . $quizId);
-        die();
-    }
-}
-
-$categories = Database::fetchCategories($page - 1);
-$numPages = ceil(Database::getCategoriesCount() / CATEGORIES_PER_PAGE);
-
-$detail = Database::getCategory(isset($quizId) ? $quizId : $categories[0]["id"]);
-$quizzesWithCategory = Database::getQuizzesWithCategory(isset($quizId) ? $quizId : $categories[0]["id"]);
-
-
 
 ?>
 
@@ -100,11 +83,10 @@ $quizzesWithCategory = Database::getQuizzesWithCategory(isset($quizId) ? $quizId
             <?php if (Database::has_errored()) {
                 require "./errors/databse_connection_error.php";
             } else {
-                category($page, $numPages, $categories, $quizId, $detail, $quizzesWithCategory);
+                category();
             } ?>
         </main>
         <?php require "./templates/footer.html"; ?>
-
     </div>
 
     <div class="modal fade" tabindex="-1">

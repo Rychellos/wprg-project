@@ -1,6 +1,6 @@
 <?php
 $scripts = [];
-require_once "functions/database.php";
+require_once "functions/user.php";
 require_once "functions/session.php";
 
 if (Session::isLoggedIn()) {
@@ -16,7 +16,7 @@ foreach (glob(__DIR__ . "/components/*.php") as $file) {
 // Invoke to start connection
 Database::get_connection();
 
-if (Database::checkRememberMe()) {
+if (User::checkRememberMe()) {
     if (Session::getLastPage()) {
         header('Location: ' . Session::getLastPage(), true, 303);
 
@@ -40,13 +40,13 @@ if (isset($_POST["userPassword"])) {
 }
 
 if ($userEmail != "" && $userPassword != "") {
-    $user = Database::loginUser($userEmail, $userPassword);
+    $user = User::login($userEmail, $userPassword);
 
     if ($user->id != null) {
         Session::fetchFromDatabase($user->id);
 
         if (isset($_POST["rememberMe"])) {
-            Database::rememberUser($user->id);
+            User::remember($user->id);
         }
 
         header('Location: ' . "index.php", true, 303);

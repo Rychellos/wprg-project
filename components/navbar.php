@@ -1,15 +1,24 @@
 <?php
 require_once "functions/session.php";
+require_once "functions/database.php";
 
 function navbar()
 {
+    $dailyQuiz = Database::get_connection()->query("SELECT q.* FROM Quiz q JOIN DailyQuiz dq ON dq.quizId = q.id WHERE dq.selectedDate = CURDATE();")->fetch(PDO::FETCH_OBJ);
+
     $quizMenuContents = "";
     $accountMenuContents = "";
+
+    $logs = "";
+
+    if(Session::isAdmin()) {
+        $logs = "<li class='nav-item'><a class='nav-link' href='logs.php'>Dziennik zdarzeń</a></li>";
+    }
 
     if (Session::isLoggedIn()) {
         $quizMenuContents .= <<<EOD
             <li>
-                <a class="dropdown-item" href="#">
+                <a class="dropdown-item" href="quizCompleted.php">
                     <i class="bi bi-check2 cs-fw me-1"></i>
                     Ukończone
                 </a>
@@ -23,12 +32,14 @@ function navbar()
                     O mnie
                 </a>
             </li>
+            <!--
             <li>
                 <a class="dropdown-item" href="#">
                     <i class="bi bi-graph-up cs-fw me-1"></i>
                     Zobacz statystyki
                 </a>
             </li>
+            -->
             <li>
                 <a class="dropdown-item" href="logout.php">
                     <i class="bi bi-lock-fill cs-fw me-1"></i>
@@ -62,9 +73,9 @@ function navbar()
                 <hr class="dropdown-divider">
             </li>
             <li>
-                <a class="dropdown-item" href="quizCreate.php">
-                    <i class="bi bi-plus-circle-fill cs-fw me-1"></i>
-                    Utwórz
+                <a class="dropdown-item" href="quizAdmin.php">
+                    <i class="bi bi-wrench-adjustable cs-fw me-1"></i>
+                    Zarządzaj
                 </a>
             </li>
         EOD;
@@ -72,12 +83,14 @@ function navbar()
 
     if (Session::isAdmin()) {
         $quizMenuContents .= <<<EOD
+            <!--
             <li>
                 <a class="dropdown-item" href="#">
                     <i class="bi bi-graph-up cs-fw me-1"></i>    
                     Statystyki
                 </a>
             </li>
+            -->
             <li>
                 <a class="dropdown-item" href="category.php">
                     <i class="bi bi-stickies-fill cs-fw me-1"></i>
@@ -88,7 +101,7 @@ function navbar()
     }
 
     echo <<<EOD
-        <header class="bg-primary-subtle shadow-lg">
+    <header class="bg-primary-subtle shadow-lg">
             <nav class="navbar navbar-expand-lg">
                 <div class="container-fluid align-items-center d-flex">
                     <a class="navbar-brand primary-secondary-gradient" href="">Quiz Serwis</a>
@@ -112,17 +125,19 @@ function navbar()
                                     Quiz
                                 </a>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#">
+                                    <li><a class="dropdown-item" href="quiz.php?id={$dailyQuiz->id}">
                                         <i class="bi bi-calendar-event-fill cs-fw me-1"></i>
                                         Codzienny
                                     </a></li>
-                                    <li><a class="dropdown-item" href="#">
+                                    <li><a class="dropdown-item" href="quizViewList.php">
                                         <i class="bi bi-list cs-fw me-1"></i>
                                         Lista
                                     </a></li>
                                     {$quizMenuContents}
                                 </ul>
                             </li>
+                            
+                            $logs
 
                             <li class="nav-item mx-auto d-none d-lg-inline"></li>
 

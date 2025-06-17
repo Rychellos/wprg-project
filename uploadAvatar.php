@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['avatarFile'])) {
     }
 
     // Step 4: Get or generate avatar hash
-    $url = Database::getProfilePictureUrl($userId);
+    $url = User::getProfilePictureUrl($userId);
 
     if (!$url) {
         // First-time upload → generate hash and store in DB
